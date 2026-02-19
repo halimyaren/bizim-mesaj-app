@@ -1,6 +1,7 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
+from streamlit_autorefresh import st_autorefresh
 from datetime import datetime
 
 # 1. VERİTABANI BAĞLANTISI
@@ -51,7 +52,7 @@ if me != "Seçiniz":
     st.write("---")
     messages_ref = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(30)
     messages = messages_ref.stream()
-
+st_autorefresh(interval=5000, key="datarefresh")
     # Mesajları baloncuk şeklinde göster
     for msg in reversed(list(messages)):
         data = msg.to_dict()
@@ -59,3 +60,4 @@ if me != "Seçiniz":
             st.write(f"**{data['kim']}:** {data['metin']}")
 else:
     st.info("Lütfen soldaki menüden isminizi seçerek sohbete başlayın.")
+
