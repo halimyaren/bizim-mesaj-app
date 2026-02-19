@@ -1,32 +1,31 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
-from streamlit_autorefresh import st_autorefresh
 
-# 1. BAĞLANTI (Hata mesajlarını gizle, sadece çalışmaya odaklan)
+# 1. BAĞLANTI
 if not firebase_admin._apps:
     cred = credentials.Certificate('key.json')
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# 2. AYARLAR
-st.set_page_config(page_title="Hızlı Mesaj")
-st_autorefresh(interval=3000, key="refresh")
+st.title("Mesaj Test Paneli")
 
-# 3. KİMLİK
-me = st.sidebar.selectbox("Kimsin?", ["Seçiniz", "Halim", "Arkadaşım"])
+# 2. MESAJ GÖNDERME
+kim = st.selectbox("Ben kimsini?", ["Halim", "Arkadaşım"])
+metin = st.text_input("Mesajın:")
+if st.button("GÖNDER"):
+    db.collection('sohbet').add({'kim': kim, 'metin': metin})
+    st.success("Veritabanına yazıldı!")
 
-if me != "Seçiniz":
-    # MESAJ GÖNDERME
-    yeni = st.chat_input("Mesaj yaz...")
-    if yeni:
-        db.collection('sohbet').add({'kim': me, 'metin': yeni})
-        st.rerun()
+st.write("---")
+st.subheader("Gelen Mesajlar:")
 
-    # MESAJLARI ÇEKME (Hatasız en basit yöntem)
-    docs = db.collection('sohbet').get() # Hiçbir sıralama kuralı koymadık!
-    
-    for d in docs:
-        m = d.to_dict()
-        with st.chat_message("user" if m['kim'] == me else "assistant"):
-            st.write(f"**{m['kim']}:** {m['metin']}")
+# 3. MESAJLARI ÇEKME (En ilkel ve garantili yol)
+docs = db.collection('sohbet').get()
+for d in docs:
+    m = d.to_dict()
+    st.write(f"{m.get('kim')}: {m.get('metin')}")
+
+# 4. YENİLEME BUTONU (Otomatik yenilemeyi şimdilik kapattık, sorun çıkmasın)
+if st.button("MESAJLARI TAZELE"):
+    st.rerun()
