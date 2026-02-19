@@ -31,13 +31,26 @@ st.title("🔒 Özel Mesaj Hattı")
 # Kimlik Seçimi
 me = st.sidebar.selectbox("Sen kimsin?", ["Seçiniz", "Halim", "Arkadaşım"])
 
+me = st.sidebar.selectbox("Sen kimsin?", ["Seçiniz", "Halim", "Arkadaşım"])
+
+# Mesaj yazma kutusunu HER ZAMAN en alta sabitleyelim
+yeni_mesaj = st.chat_input("Buraya bir şeyler yaz ve Enter'a bas...")
 if me != "Seçiniz":
-    # 3. MESAJLARI ÇEKME VE GÖSTERME
-    st.write(f"Hoş geldin, **{me}**")
-    
-    # Veritabanından son 20 mesajı oku
+    if yeni_mesaj:
+        db.collection('sohbet').add({
+            'kim': me,
+            'metin': yeni_mesaj,
+            'vakit': datetime.now()
+        })
+        st.rerun()
+
+    # Mesajları göster
     messages_ref = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20)
     messages = messages_ref.stream()
+    for msg in reversed(list(messages)):
+        data = msg.to_dict()
+        with st.chat_message("user" if data['kim'] == me else "assistant"):
+            st.write(f"{data['kim']}: {data['metin']}")
 
     # Mesajları ekrana yazdır (En yeni en altta görünsün diye ters çeviriyoruz)
     chat_history = list(messages)
@@ -56,4 +69,5 @@ if me != "Seçiniz":
         })
         st.rerun() # Sayfayı yenile ki mesaj hemen görünsün
 else:
+
     st.info("Lütfen soldan ismini seçerek sohbete katıl.")
