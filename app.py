@@ -1,63 +1,58 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
-from streamlit_autorefresh import st_autorefresh
 from datetime import datetime
+from streamlit_autorefresh import st_autorefresh
 
-# 1. VERİTABANI BAĞLANTISI
-if not firebase_admin._apps:
-    cred = credentials.Certificate('key.json')
-    firebase_admin.initialize_app(cred)
+# 1. BAĞLANTIYI KONTROL ET (Hata yakalayıcı ekledik)
+try:
+    if not firebase_admin._apps:
+        cred = credentials.Certificate('key.json')
+        firebase_admin.initialize_app(cred)
+    db = firestore.client()
+except Exception as e:
+    st.error(f"Veritabanı bağlantı hatası: {e}")
+    st.stop()
 
-db = firestore.client()
-
-# 2. SAYFA AYARLARI
+# 2. SAYFA AYARLARI VE OTOMATİK YENİLEME
 st.set_page_config(page_title="Bizim Sohbet", layout="centered")
+st_autorefresh(interval=3000, key="datarefresh") # 3 saniyede bir kontrol eder
 
-# 3. GİRİŞ SİSTEMİ (Şifre Paneli)
+# 3. GİRİŞ KONTROLÜ
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("🔒 Giriş Yap")
     sifre = st.text_input("Giriş Şifresini Yazın:", type="password")
-    if sifre == "bizim-ozel-sifre": # Şifreni buradan değiştirebilirsin
+    if sifre == "1234": # Şifreni buraya ne yazdıysan o olmalı!
         st.session_state.authenticated = True
         st.rerun()
     else:
         st.stop()
 
-# 4. SOHBET ARAYÜZÜ (Şifre geçildikten sonra burası çalışır)
+# 4. SOHBET
 st.title("💬 Özel Mesaj Hattı")
+me = st.sidebar.selectbox("Sen kimsin?", ["Seçiniz", "Halim", "Arkadaşım"], key="user_choice")
 
-# Sol menüden kimlik seçimi
-me = st.sidebar.selectbox("Sen kimsini?", ["Seçiniz", "Halim", "Arkadaşım"], key="user_select")
-
-# Mesaj yazma kutusu (HER ZAMAN GÖRÜNSÜN)
 yeni_mesaj = st.chat_input("Mesajınızı buraya yazın...")
 
 if me != "Seçiniz":
-    st.write(f"Hoş geldin, **{me}**")
-    
-    # Mesaj gönderme işlemi
     if yeni_mesaj:
-        db.collection('sohbet').add({
-            'kim': me,
-            'metin': yeni_mesaj,
-            'vakit': datetime.now()
-        })
-        st.rerun()
+        try:
+            # Firestore'a veri ekleme denemesi
+            db.collection('sohbet').add({
+                'kim': me,
+                'metin': yeni_mesaj,
+                'vakit': datetime.now()
+            })
+        except Exception as e:
+            st.error(f"Mesaj gönderilemedi: {e}")
 
-    # Mesajları veritabanından çekme
-    st.write("---")
-    messages_ref = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(30)
+    # Mesajları Göster
+    messages_ref = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20)
     messages = messages_ref.stream()
-st_autorefresh(interval=5000, key="datarefresh")
-    # Mesajları baloncuk şeklinde göster
+    
     for msg in reversed(list(messages)):
         data = msg.to_dict()
         with st.chat_message("user" if data['kim'] == me else "assistant"):
             st.write(f"**{data['kim']}:** {data['metin']}")
-else:
-    st.info("Lütfen soldaki menüden isminizi seçerek sohbete başlayın.")
-
