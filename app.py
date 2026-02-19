@@ -2,37 +2,39 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# Firebase bağlantısı
+# Firebase Bağlantısı
 if not firebase_admin._apps:
-    # Secrets'tan firebase başlığı altındaki her şeyi al
-    key_dict = dict(st.secrets["firebase"])
-    # private_key içindeki satır sonlarını düzelt
-    key_dict["private_key"] = key_dict["private_key"].replace("\\n", "\n")
-    
-    cred = credentials.Certificate(key_dict)
-    firebase_admin.initialize_app(cred)
+    try:
+        # Secrets'tan veriyi çek ve sözlüğe çevir
+        key_dict = dict(st.secrets["firebase"])
+        # Gizli karakterleri (\n) Python'un anlayacağı hale getir
+        key_dict["private_key"] = key_dict["private_key"].replace("\\n", "\n")
+        
+        cred = credentials.Certificate(key_dict)
+        firebase_admin.initialize_app(cred)
+    except Exception as e:
+        st.error(f"Bağlantı Kurulamadı: {e}")
 
 db = firestore.client()
 
-st.title("💬 Özel Mesaj Paneli")
+st.title("💬 Bizim Sohbet")
 
-# Mesaj yazma ve gönderme
-with st.container():
-    kim = st.radio("Ben kimsini?", ["Halim", "Arkadaşım"], horizontal=True)
-    metin = st.text_input("Mesajınız:")
-    if st.button("ŞİMDİ GÖNDER") and metin:
-        db.collection('sohbet').add({
-            'kim': kim,
-            'metin': metin,
-            'vakit': firestore.SERVER_TIMESTAMP
-        })
-        st.rerun()
+# Mesaj Yazma
+with st.form("chat_form", clear_on_submit=True):
+    user = st.radio("Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
+    text = st.text_input("Mesaj:")
+    if st.form_submit_button("GÖNDER"):
+        if text:
+            db.collection('sohbet').add({
+                'kim': user, 'metin': text, 'vakit': firestore.SERVER_TIMESTAMP
+            })
+            st.rerun()
 
-# Mesajları listeleme
+# Mesajları Çekme (Hata almamak için basit sıralama)
 st.write("---")
-docs = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20).get()
+docs = db.collection('sohbet').limit(30).get()
+msgs = sorted([d.to_dict() for d in docs], key=lambda x: str(x.get('vakit', '')))
 
-for d in docs:
-    m = d.to_dict()
+for m in msgs:
     with st.chat_message("user" if m.get('kim') == "Halim" else "assistant"):
         st.write(f"**{m.get('kim')}:** {m.get('metin')}")
