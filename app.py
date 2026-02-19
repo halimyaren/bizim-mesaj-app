@@ -2,45 +2,54 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 1. Firebase'i dosyadan başlat
+# Sayfa Ayarları
+st.set_page_config(page_title="Bizim Sohbet", layout="centered")
+
+# 1. Firebase Bağlantısını Kur (Dosyadan Okuma)
 if not firebase_admin._apps:
     try:
-        # Dosya adının 'key.json' olduğundan emin ol
         cred = credentials.Certificate("key.json")
         firebase_admin.initialize_app(cred)
     except Exception as e:
-        st.error(f"Dosya okunamadı! Hata: {e}")
+        st.error(f"❌ Firebase anahtar dosyası (key.json) bulunamadı veya hatalı: {e}")
 
 db = firestore.client()
 
-# 2. Arayüz
-st.set_page_config(page_title="Bizim Mesajlar", page_icon="💬")
-st.title("💬 Özel Mesajlaşma")
+st.title("💬 Özel Mesaj Paneli")
 
-# Mesaj Yazma Bölümü
+# 2. Mesaj Gönderimi
 with st.container():
-    user = st.radio("Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
-    text = st.text_input("Mesajını buraya yaz...")
+    # Kimlik seçimi
+    user = st.selectbox("Ben Kimim?", ["Halim", "Arkadaşım"])
+    # Mesaj girişi
+    text = st.text_input("Mesajını yaz ve Enter'a bas:")
     
-    if st.button("GÖNDER") and text:
-        db.collection('sohbet').add({
-            'kim': user,
-            'metin': text,
-            'vakit': firestore.SERVER_TIMESTAMP
-        })
-        st.rerun()
+    if st.button("ŞİMDİ GÖNDER") and text:
+        try:
+            # Firebase'e ekle
+            db.collection('sohbet').add({
+                'kim': user,
+                'metin': text,
+                'vakit': firestore.SERVER_TIMESTAMP
+            })
+            st.success("Mesaj gönderildi!")
+            st.rerun() # Sayfayı yenile ki mesaj listede görünsün
+        except Exception as e:
+            st.error(f"⚠️ Mesaj gönderilemedi: {e}")
 
 st.divider()
 
 # 3. Mesajları Listeleme
+st.subheader("Mesaj Geçmişi")
 try:
-    # Son 20 mesajı çek
+    # Mesajları tarihe göre tersten çek
     docs = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20).get()
     
     for d in docs:
         m = d.to_dict()
-        role = "user" if m.get('kim') == "Halim" else "assistant"
-        with st.chat_message(role):
+        # Halim'in mesajları sağda, arkadaşınınki solda gibi göster
+        is_halim = m.get('kim') == "Halim"
+        with st.chat_message("user" if is_halim else "assistant"):
             st.write(f"**{m.get('kim')}:** {m.get('metin')}")
 except Exception as e:
-    st.info("İlk mesajı sen yaz!")
+    st.info("Henüz mesaj yok, ilk mesajı sen yaz!")
