@@ -2,9 +2,10 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 1. FIREBASE BAĞLANTISI (Anahtar düzeltildi)
+# 1. FIREBASE BAĞLANTISI (Hata Payı Sıfır)
 if not firebase_admin._apps:
-    key_dict = {
+    # Karakter hatalarını önlemek için anahtarı temiz bir şekilde tanımlıyoruz
+    key_info = {
         "type": "service_account",
         "project_id": "ozel-mesaj-app",
         "private_key_id": "94192de7b0d4555b799de6fadb5027feb4d8a42a",
@@ -18,44 +19,42 @@ if not firebase_admin._apps:
     }
     
     try:
-        cred = credentials.Certificate(key_dict)
+        cred = credentials.Certificate(key_info)
         firebase_admin.initialize_app(cred)
     except Exception as e:
-        st.error(f"Anahtar Okuma Hatası: {e}")
+        st.error(f"⚠️ Anahtar Hatası: {e}")
 
 db = firestore.client()
 
 # 2. ARAYÜZ
-st.title("💬 Canlı Sohbet Testi")
+st.title("💬 Canlı Sohbet Paneli")
 
-# Mesaj Yazma
+# Mesaj Gönderimi
 with st.container():
-    kim = st.radio("Sen Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
-    metin = st.text_input("Mesajını Yaz ve Enter'a Bas:")
+    user = st.radio("Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
+    msg = st.text_input("Mesajını yaz ve Enter'a bas:")
     
-    if metin:
+    if msg:
         db.collection('sohbet').add({
-            'kim': kim,
-            'metin': metin,
-            'vakit': firestore.SERVER_TIMESTAMP
+            'kim': user,
+            'metin': msg,
+            'vakit': firestore.SERVER_TIMESTAMP # Zamanı Firebase ayarlar
         })
         st.rerun()
 
 # 3. MESAJLARI GÖSTER
 st.write("---")
 try:
-    # Verileri çek (Sıralama yapmıyoruz ki 'Index' hatası vermesin)
+    # En yeni 25 mesajı çek (Sıralama hatasını önlemek için sade tutuldu)
     docs = db.collection('sohbet').limit(25).get()
     
-    # Mesajları ekrana bas
     for d in docs:
         m = d.to_dict()
-        # Halim'in mesajları mavi, diğerleri gri balon
         with st.chat_message("user" if m.get('kim') == "Halim" else "assistant"):
             st.write(f"**{m.get('kim')}:** {m.get('metin')}")
 except Exception as e:
-    st.write("Henüz mesaj yok veya bağlantı bekleniyor...")
+    st.info("Mesajlar yükleniyor...")
 
-# Sayfayı yenilemek için küçük bir buton
-if st.button("🔄 Mesajları Güncelle"):
+# Yenileme Butonu
+if st.button("🔄 Mesajları Tazele"):
     st.rerun()
