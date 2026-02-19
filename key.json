@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ozel-mesaj-app",
+  "private_key_id": "c5e817f4bf45d5be8815122678ee0db8ec2d91ec",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDhF7FUGWJbFu84\n7AL9xU6hf82FojKX8P407PMit5xnqUNVlVL0EcsJ5WPfRYwoQQBDj73L2V64HRqb\n372kd5ujT7LKuuPWdSjjdVhXoBzFNtRt03IM7QSRihgD0xiT2H97tA/YmDuNWGYw\n7hcYjFoCOwASJUmBIzxQ6aAv3ZIeOkvfAI0pGLW/ZUSNUuNYSRQDdRoN54li5+Fc\n9ND9MGxdjJ14tGNWoLCof5pOCIeNd9WdBNTjmzjZOIKyQqYizjE9pFlH5cxJ+IJn\nLVvK6rm0qPIscPc7hl5l75qVBSw0wsx8OR21nzidvmdXOqNltipeKfevW5Fxg3B+\n6WRv8bPRAgMBAAECggEAD2r5CYKnmweqISMBXXKLXUKMyE+A2al3MBbe3IzpGKye\nYRlWUkN5vdbJjXyNCiDRrM8GuBTOiRvtO6oKql5K+de2rm44tvLVdycNgwsDjXqg\n+FjYYgxGGNX1qSVndJEKwmVmBHcA9UCN12InkNXkQGzcJ2IIc+D++6fVAhJSNOG2\nZ88QDubRUiJ5ntzzFYDaHbYzWHTmsUQXFA+eO7NBV2WR3tG1GJ3FUG4JYD4eswFy\nUaDwt0ky1+Z4s3aikL/eww4iKTPrD9VQk+g7Tn0boKntHKkKiKWxjCkcAFfDax+1\n1wp7ToIswSJ73WBeIZI3BO8fUssboxBH9JMN+As6cQKBgQD/c57U/tTrB3JFkWwn\nGhE6PzOaI1+zuVLar8Y88DKjL6c1TENlVELT6SzGHMUDgMFLRn6Qs0jpeSQrC8SJ\ntkwMcD6G7j5Mzfw27xX0MJVkcE76OVT/LRV7NB0p7C76cfzkuDY0HdIvEfpEWLWI\nAgbdKdUI2memwQ+dP65fpjgBNQKBgQDhk2ONSCebcd+BndRC3GsVcW7G4P4o6glY\nGrGONzixluPosXSW/2ilBO9h8udN7DLX8v7N9Mnyst3YmFSXwQ52EmhuwnfADfTb\nkSNBH+1OjPlRgfTWJHDgWf1Q7Q5S5pRZjSG+tVBqXMLh0aAcBStN7/JflOKrb2NJ\nMJLeScy3rQKBgEkKk0jN0K2fRHJV4XnQv0pLVgLlyHCINgOnrOQxvhjhAEuCEedA\nT5duHcpL4Z1dzGcssfXH/bocVFYmmDzULiyET6yfJJsrbsl6VWmsFptQbZSongAU\nsQa4YPpiuRANVcVEUuNV/4pL9qZiQw2vnqzQUESmxmps230X/1EEIxFdAoGBAIVX\nbr2RLXiBs7EW7uYnDVW7m9QMI7FjxupBvTtoASdZHpfqbhTkHaOOa0LnJzu0p8ln\nZp+wV8ATY3gpc7fQ8w9wijMO2WK53Uf9X22bxddtFePMgkIjgGXeTBOOTa1Lh933\nwz7MRyDYfIqoM5DcrWCAujEt/V+BlJsrD2Y/EbhxAoGBAM/CSS9oEyveYF1ybo/3\nek4pBXz8Pii+oDg3pMhHtCLt+73SvwUrn+svv66QMtyaad5dqucCpcuZdO3ZDHTA\n8dkDih/jpvi/VOBUL/5gFTxb0PasfurrN8XkQ3JvFqxAZBz5xkja74n8hDgMAhPD\nrhMDMj5Nzc2R/enbXNliALiT\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@ozel-mesaj-app.iam.gserviceaccount.com",
+  "client_id": "108796016460187663405",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40ozel-mesaj-app.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
