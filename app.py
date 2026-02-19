@@ -2,59 +2,68 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 1. FIREBASE BAĞLANTISI (Hata Payı Sıfır)
+# 1. FIREBASE ANAHTAR YERLEŞTİRME
 if not firebase_admin._apps:
-    # Karakter hatalarını önlemek için anahtarı temiz bir şekilde tanımlıyoruz
-    key_info = {
-        "type": "service_account",
-        "project_id": "ozel-mesaj-app",
-        "private_key_id": "94192de7b0d4555b799de6fadb5027feb4d8a42a",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDXOOEzb3rMOqiJ\nngp7oqLNPgiVsJKbzW/CxDMQqVo+U6xqjxtf9rybD0jx5gnV2hLtxS51AsZQcbspK\nnnWYuxN0ToOH1f+jx/SkJ1kAuPfa5L1svqMXF1MIF9WiZ\n-----END PRIVATE KEY-----\n",
-        "client_email": "firebase-adminsdk-fbsvc@ozel-mesaj-app.iam.gserviceaccount.com",
-        "client_id": "108796016460187663405",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40ozel-mesaj-app.iam.gserviceaccount.com"
+    key_dict = {
+      "type": "service_account",
+      "project_id": "ozel-mesaj-app",
+      "private_key_id": "94192de7b0d4555b799de6fadb5027feb4d8a42a",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDXOOEzb3rMOqiJ\ngp7oqLNPgiVsJKbzW/CxDMQqVo+U6xqjxtf9rybD0jx5gnV2hLtxS51AsZQcbspK\nnWYuxN0ToOH1f+jx/SkJ1kAuPfa5L1svqMXF1MIF9WiZ5LTSRsE5KOjAbplZjESG\n/jP4HS0cicvEolXxiwvMkjWbjh2G7t/wj9F/QPfK2NTGHYH4rdBb/Tc7khtDkYbL\nx0OGr9P6U/komaaZXrz48dQQeHJyifoWamfSsp6hrZAaWLWpM+pSutbP5cU+SfWe\nUM9X6ms3plhVLIMa+AoyoKrJo/Y/l9jab5DDVAHoubjWs0Zi2Iyw+4apRRVetGsG\nDmOqmygdAgMBAAECggEAB6k4lqe96m3GQoMifC5uXMy134n8TnWAXNgc88l6F2Yb\npQlDCjmz81GVMG0qeu3FilUdRB71evXtGLjYOLK9GlLrNbYuRn+B7rF6Pk2bbgMG\nYE9jlVAIyjEMNyYqcK29x4CPrLz5ROpeJS07wWwS6bR0cn7g0V/nK2NAqgahGkmW\ngJNBpaxz963ezAidAlHAtlkeDKGjfdZyierIzB0piw/BgI9UO7dWTH/3h8BAbVcS\nP3c9JOojPXfXkn29GXSoqGVuaV5QYI0Rml+QC+KxXeScbvuEOdoP+sypLc3et2fg\nPrhYHo5EnNOOBcxpfLIsoDx5SUKNAZfA72Jc8hWbVQKBgQD/HVOPeJxDHJ0a0uvI\n99ff+qxDYjYY86uMTLKdTDijgrzGHj+UxGg/xYbAu6g0o+cYFWJqRU/kv+g3k76i\n6JxDMN6hwPEDj5XYPr1+8DddbFIDmI+2KrQf82LcNxiT5PMqC4tg3fe6/Kx6WAvK\nB7jutvqP2pI7HtF/wlbhHMgGGwKBgQDX+Bu1hx4l9QPEaS8pBuoNGnP/3yriSLrc\nco98KwFpUfoe1udS+iBht4eR8sZHK9MNUQ1cFjJu5hEi0bzarjvVI88NK3nE41hq\np+HsnPv+NNTdbfQLR4z57eXo6LMelQr6tvRjAJMx15jQCPff+h6EplbdYKrA4EXG\nyGpcvzJOJwKBgDE+DeUBmNfza/fDgrOV81tOXXXcPSjvz8sS+t8V2VDmaV2sdQVY\nK+8zR2FoV31hrbeeWRK+Mj+rMz2XDRMQ5yipBDAgt+TCEGBfK+CWqXkk8We0SPkW\noRIRvqFXGS1i4fTZqZuW/LxhDUHIQO5MM0wQkai2vccfmbyZXH+zOIDFAoGAf0iy\nBAWzZgmGg96+Nb7meHyLu1Tq8FyPDNfT6wlplooDEOP1h/j01sKU+xaLd2zDwYhw\niEJozOV5Wf0lAflIODEXmZpy9PBMrudtBsfq2IKIpkxkVbWAx9hG9UMYNkD/LI5h\ncGvpVKnNXWa7uFywWduzPFv5px1G4oZB8ZGZ82cCgYEAjBBaMo3uBilqbu8WjmjU\nw1xzJ3opbgAujz/2tzWII3cRRrV4Oq/jaQABo4ehx3KggSWkDu9ctwExokH4GDjC\nNMBpYo6yN5Hw3JhvF36rfeQSGEea5OIG+12dwoUeBEiQjXAC0JbhXsTk3yr8AeDy\nuR87nFmjPIfPWMymVp5Nsm4=\n-----END PRIVATE KEY-----\n",
+      "client_email": "firebase-adminsdk-fbsvc@ozel-mesaj-app.iam.gserviceaccount.com",
+      "client_id": "108796016460187663405",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40ozel-mesaj-app.iam.gserviceaccount.com",
+      "universe_domain": "googleapis.com"
     }
     
     try:
-        cred = credentials.Certificate(key_info)
+        cred = credentials.Certificate(key_dict)
         firebase_admin.initialize_app(cred)
     except Exception as e:
-        st.error(f"⚠️ Anahtar Hatası: {e}")
+        st.error(f"⚠️ Bağlantı Hatası: {e}")
 
 db = firestore.client()
 
-# 2. ARAYÜZ
-st.title("💬 Canlı Sohbet Paneli")
+# 2. ARAYÜZ AYARLARI
+st.set_page_config(page_title="Bizim Sohbet", layout="centered")
+st.title("💬 Özel Sohbet Hattı")
 
-# Mesaj Gönderimi
+# 3. MESAJ YAZMA
 with st.container():
-    user = st.radio("Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
-    msg = st.text_input("Mesajını yaz ve Enter'a bas:")
+    kim = st.radio("Kimsin?", ["Halim", "Arkadaşım"], horizontal=True)
+    yeni_mesaj = st.text_input("Mesajını yaz ve Enter'a bas:")
     
-    if msg:
+    if yeni_mesaj:
         db.collection('sohbet').add({
-            'kim': user,
-            'metin': msg,
-            'vakit': firestore.SERVER_TIMESTAMP # Zamanı Firebase ayarlar
+            'kim': kim,
+            'metin': yeni_mesaj,
+            'vakit': firestore.SERVER_TIMESTAMP
         })
         st.rerun()
 
-# 3. MESAJLARI GÖSTER
+# 4. MESAJLARI GÖSTERME
 st.write("---")
 try:
-    # En yeni 25 mesajı çek (Sıralama hatasını önlemek için sade tutuldu)
-    docs = db.collection('sohbet').limit(25).get()
+    # Verileri çek (Zaman sıralaması hatası almamak için şimdilik limitli çekiyoruz)
+    docs = db.collection('sohbet').limit(30).get()
     
+    # Mesajları tarihe göre sıralayalım (Kod bazlı)
+    mesaj_listesi = []
     for d in docs:
-        m = d.to_dict()
-        with st.chat_message("user" if m.get('kim') == "Halim" else "assistant"):
-            st.write(f"**{m.get('kim')}:** {m.get('metin')}")
-except Exception as e:
-    st.info("Mesajlar yükleniyor...")
+        mesaj_listesi.append(d.to_dict())
+    
+    # Zamana göre küçükten büyüğe sırala
+    sirali = sorted(mesaj_listesi, key=lambda x: str(x.get('vakit', '')))
 
-# Yenileme Butonu
+    for m in sirali:
+        with st.chat_message("user" if m['kim'] == "Halim" else "assistant"):
+            st.write(f"**{m['kim']}:** {m['metin']}")
+            
+except Exception as e:
+    st.info("Henüz görüntülenecek mesaj yok.")
+
+# 5. MANUEL YENİLEME
 if st.button("🔄 Mesajları Tazele"):
     st.rerun()
