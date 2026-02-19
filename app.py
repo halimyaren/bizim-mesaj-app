@@ -38,15 +38,18 @@ yeni_mesaj = st.chat_input("Mesajınızı buraya yazın...")
 
 if me != "Seçiniz":
     if yeni_mesaj:
-        try:
-            # Firestore'a veri ekleme denemesi
-            db.collection('sohbet').add({
-                'kim': me,
-                'metin': yeni_mesaj,
-                'vakit': datetime.now()
-            })
-        except Exception as e:
-            st.error(f"Mesaj gönderilemedi: {e}")
+    try:
+        # Mesajı bir değişkene alıp öyle gönderelim
+        doc_ref = db.collection('sohbet').document()
+        doc_ref.set({
+            'kim': me,
+            'metin': yeni_mesaj,
+            'vakit': datetime.now()
+        })
+        st.success("Mesaj gönderildi!") # Eğer bu yazı çıkarsa veri gitmiş demektir
+        st.rerun()
+    except Exception as e:
+        st.error(f"Veri yazma hatası: {e}")
 
     # Mesajları Göster
     messages_ref = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20)
@@ -56,3 +59,4 @@ if me != "Seçiniz":
         data = msg.to_dict()
         with st.chat_message("user" if data['kim'] == me else "assistant"):
             st.write(f"**{data['kim']}:** {data['metin']}")
+
