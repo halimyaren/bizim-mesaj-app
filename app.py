@@ -37,15 +37,15 @@ if me != "Seçiniz":
     yeni_mesaj = st.chat_input("Mesaj yaz...")
     if yeni_mesaj:
         try:
-        db.collection('sohbet').add({
-                'kim': me,
-                'metin': yeni_mesaj,
-                'vakit': datetime.now()
-            })
-            st.toast(f"Mesaj gönderildi: {yeni_mesaj}") # Sağ altta küçük bir balon çıkar
-            st.rerun()
-        except Exception as e:
-            st.error(f"Gönderim hatası: {e}")
+            db.collection('sohbet').add({
+                    'kim': me,
+                    'metin': yeni_mesaj,
+                    'vakit': datetime.now()
+                })
+                st.toast(f"Mesaj gönderildi: {yeni_mesaj}") # Sağ altta küçük bir balon çıkar
+                st.rerun()
+            except Exception as e:
+                st.error(f"Gönderim hatası: {e}")
 
     # Mesajları listeleme
     docs = db.collection('sohbet').order_by('vakit', direction=firestore.Query.DESCENDING).limit(20).stream()
@@ -53,4 +53,5 @@ if me != "Seçiniz":
         d = msg.to_dict()
         with st.chat_message("user" if d['kim'] == me else "assistant"):
             st.write(f"**{d['kim']}:** {d['metin']}")
+
 
