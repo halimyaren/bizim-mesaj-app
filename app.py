@@ -4,67 +4,44 @@ from firebase_admin import credentials, firestore
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 
-# 1. SAYFA AYARLARI (En üstte olmalı)
-st.set_page_config(page_title="Bizim Sohbet", layout="centered")
-
-# 2. FIREBASE BAĞLANTISI
+# 1. BAĞLANTI AYARLARI
 if not firebase_admin._apps:
-    try:
-        cred = credentials.Certificate('key.json')
-        firebase_admin.initialize_app(cred)
-    except Exception as e:
-        st.error(f"Bağlantı Hatası: {e}")
+    cred = credentials.Certificate('key.json')
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-# 3. ŞİFRE SİSTEMİ (Hafızada tutma odaklı)
-if "login_ok" not in st.session_state:
-    st.session_state.login_ok = False
+# 2. SAYFA VE YENİLEME (5 Saniyede Bir)
+st.set_page_config(page_title="Mesaj Uygulaması")
+st_autorefresh(interval=5000, key="freshtime")
 
-if not st.session_state.login_ok:
-    st.title("🔒 Giriş")
-    sifre_input = st.text_input("Şifre Girin", type="password")
-    if st.button("Giriş Yap"):
-        if sifre_input == "1234": # Şifreniz
-            st.session_state.login_ok = True
-            st.rerun()
-        else:
-            st.error("Hatalı Şifre!")
-    st.stop()
-
-# 4. OTOMATİK YENİLEME (Şifreden sonra çalışsın)
-st_autorefresh(interval=5000, key="chat_refresh")
-
-# 5. SOHBET ARAYÜZÜ
-st.title("💬 Özel Mesaj Hattı")
+# 3. KİMLİK SEÇİMİ
 me = st.sidebar.selectbox("Kimsin?", ["Seçiniz", "Halim", "Arkadaşım"])
 
 if me != "Seçiniz":
-    yeni_mesaj = st.chat_input("Mesajınızı buraya yazın...")
+    st.title(f"Hoş geldin {me}")
     
+    # MESAJ YAZMA ALANI
+    yeni_mesaj = st.chat_input("Buraya yazın...")
     if yeni_mesaj:
-        # Veriyi sözlük olarak hazırla
-        data = {
+        db.collection('sohbet').add({
             'kim': me,
             'metin': yeni_mesaj,
             'vakit': datetime.now()
-        }
-        # Firestore'a gönder
-        db.collection('sohbet').add(data)
+        })
         st.rerun()
 
-    # Mesajları listele
-    docs = db.collection('sohbet').limit(30).stream()
+    # MESAJLARI GÖSTERME (EN BASİT HALİ)
+    # Burada 'order_by' kullanmıyoruz çünkü index hatası verebilir
+    docs = db.collection('sohbet').limit(20).get()
     
-    mesajlar = []
+    mesaj_listesi = []
     for d in docs:
-        m_data = d.to_dict()
-        mesajlar.append(m_data)
+        mesaj_listesi.append(d.to_dict())
     
-    # Zamana göre sırala (Vakit bilgisi olmayanları sona at)
-    mesajlar.sort(key=lambda x: x.get('vakit', datetime.now()))
+    # Kod içinde sıralama yapalım (Firebase hatası almamak için)
+    sirali_mesajlar = sorted(mesaj_listesi, key=lambda x: str(x.get('vakit', '')))
 
-    for m in mesajlar:
-        is_me = (m.get('kim') == me)
-        with st.chat_message("user" if is_me else "assistant"):
-            st.write(f"**{m.get('kim')}:** {m.get('metin')}")
+    for m in sirali_mesajlar:
+        with st.chat_message("user" if m['kim'] == me else "assistant"):
+            st.write(f"**{m['kim']}:** {m['metin']}")
